@@ -470,12 +470,42 @@ do_beepy_ppa_menu() {
   fi
 }
 
+do_tmux_status_bar_location_menu() {
+  CHOICE=$(whiptail --title "$TITLE" --radiolist "Where would you like to display the status bar?" 15 60 4 \
+      "1" "Top" \
+      "2" "Bottom" \
+      3>&1 1>&2 2>&3)
+
+  if [ $? -eq 0 ]; then
+      case $CHOICE in
+          1)
+              do_tmux_move_status_bar "top"
+              ;;
+          2)
+              do_tmux_move_status_bar "bottom"
+              ;;
+          *)
+              # This should never happen
+              whiptail --msgbox "Programmer error: unrecognized option" 20 60 1
+              ;;
+      esac || whiptail --msgbox "There was an error running option $CHOICE" 20 60 1
+  else
+      do_customize_tmux_menu
+  fi
+}
+
+do_tmux_change_status_update_interval_menu() {
+  INTERVAL=$(whiptail --title "$TITLE" --inputbox "How often would you like to update the status bar (in seconds)?" 15 60 3>&1 1>&2 2>&3)
+
+  do_tmux_set_update_interval "$INTERVAL"
+}
+
 do_customize_tmux_menu() {
   CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
         "1" "Display battery and WiFi strength" \
         "2" "Display date" \
-        "3" "Move status bar to bottom" \
-        "4" "Move status bar to top" \
+        "3" "Move status bar" \
+        "4" "Change status update interval" \
         3>&1 1>&2 2>&3)
 
     if [ $? -eq 0 ]; then
@@ -487,10 +517,10 @@ do_customize_tmux_menu() {
                 do_tmux_add_date_to_status_bar
                 ;;
             3)
-                do_tmux_move_status_bar "bottom"
+                do_tmux_status_bar_location_menu
                 ;;
             4)
-                do_tmux_move_status_bar "top"
+                do_tmux_change_status_update_interval_menu
                 ;;
             *)
                 # This should never happen

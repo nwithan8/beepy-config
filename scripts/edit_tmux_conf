@@ -8,6 +8,32 @@ do_ensure_tmux_conf_exists() {
     fi
 }
 
+do_tmux_add_line() {
+  line=$1
+
+  do_tmux_remove_line "$line"
+
+  echo "$line" >> "$TMUX_CONFIG_FILE"
+}
+
+do_tmux_remove_line() {
+  line=$1
+
+  # Remove line if found
+  if grep -q "$line" "$TMUX_CONFIG_FILE"; then
+    sed -i "/$line/d" "$TMUX_CONFIG_FILE"
+  fi
+}
+
+do_tmux_remove_line_by_regex_pattern() {
+  pattern=$1
+
+  # Remove line if found
+  if grep -q "$pattern" "$TMUX_CONFIG_FILE"; then
+    sed -i "/$pattern/d" "$TMUX_CONFIG_FILE"
+  fi
+}
+
 do_tmux_add_levels_to_status_bar() {
   do_ensure_tmux_conf_exists
 
@@ -25,5 +51,17 @@ do_tmux_move_status_bar() {
 
   position=$1
 
+  do_tmux_remove_line_by_regex_pattern "set -g status-position [a-z]+"
+
   echo "set -g status-position $position" >> "$TMUX_CONFIG_FILE"
+}
+
+do_tmux_set_update_interval() {
+  do_ensure_tmux_conf_exists
+
+  interval=$1
+
+  do_tmux_remove_line_by_regex_pattern "set -g status-interval [0-9]+"
+
+  echo "set -g status-interval $interval" >> "$TMUX_CONFIG_FILE"
 }

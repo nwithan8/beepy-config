@@ -113,3 +113,12 @@ do_bashrc_remove_line() {
     sed -i "/$line/d" "$BEEPY_BASHRC_FILE"
   fi
 }
+
+do_bashrc_remove_line_by_regex_pattern() {
+  pattern=$1
+
+  # Remove line if found
+  if grep -q "$pattern" "$BEEPY_BASHRC_FILE"; then
+    sed -i "/$pattern/d" "$BEEPY_BASHRC_FILE"
+  fi
+}
