@@ -37,13 +37,13 @@ do_tmux_remove_line_by_regex_pattern() {
 do_tmux_add_levels_to_status_bar() {
   do_ensure_tmux_conf_exists
 
-  echo "set -g status-right '#(sh $SCRIPTS_DIR/wifi_strength) #(sh $SCRIPTS_DIR/battery_level)'" >> "$TMUX_CONFIG_FILE"
+  do_tmux_add_line "set -g status-right '#(sh $SCRIPTS_DIR/wifi_strength) #(sh $SCRIPTS_DIR/battery_level)'"
 }
 
 do_tmux_add_date_to_status_bar() {
   do_ensure_tmux_conf_exists
 
-  echo "set -g status-left \"#(date +'%I:%M%p') \"" >> "$TMUX_CONFIG_FILE"
+  do_tmux_add_line "set -g status-left \"#(date +'%I:%M%p') \""
 }
 
 do_tmux_move_status_bar() {
@@ -53,7 +53,7 @@ do_tmux_move_status_bar() {
 
   do_tmux_remove_line_by_regex_pattern "set -g status-position [a-z]+"
 
-  echo "set -g status-position $position" >> "$TMUX_CONFIG_FILE"
+  do_tmux_add_line "set -g status-position $position"
 }
 
 do_tmux_set_update_interval() {
@@ -63,5 +63,5 @@ do_tmux_set_update_interval() {
 
   do_tmux_remove_line_by_regex_pattern "set -g status-interval [0-9]+"
 
-  echo "set -g status-interval $interval" >> "$TMUX_CONFIG_FILE"
+  do_tmux_add_line "set -g status-interval $interval"
 }

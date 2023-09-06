@@ -472,8 +472,8 @@ do_beepy_ppa_menu() {
 
 do_tmux_status_bar_location_menu() {
   CHOICE=$(whiptail --title "$TITLE" --radiolist "Where would you like to display the status bar?" 15 60 4 \
-      "1" "Top" \
-      "2" "Bottom" \
+      "1" "Top" ON \
+      "2" "Bottom" OFF \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
