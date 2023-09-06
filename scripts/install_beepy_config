@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Update package lists
+sudo apt update
+
+# Install necessary packages
+sudo apt-get install -y git
+
+# Directories for config files and git repos
+mkdir -p "$CONFIG_DIR" || true
+mkdir -p "$REPOS_DIR" || true

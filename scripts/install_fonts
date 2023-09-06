@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Ref: https://github.com/k5njm/beepy-hacks/blob/mainline/fonts.md
+if ! dpkg -s console-setup >/dev/null 2>&1; then
+  sudo apt-get install console-setup kbd
+fi
+
+# Download Terminus fonts if git repo not already cloned
+if [ ! -d "$REPOS_DIR"/fonts ]; then
+  echo "Downloading Terminus fonts..."
+  git clone https://github.com/powerline/fonts.git "$REPOS_DIR" || true
+fi
+
+sudo cp "$REPOS_DIR"/fonts/Terminus/PSF/*.gz /usr/share/consolefonts/

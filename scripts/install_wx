@@ -1,0 +1,16 @@
+#!/bin/bash
+
+location=$1
+units=$2
+
+# Download file to /usr/local/bin/wx
+curl -s https://github.com/k5njm/beepy-hacks/raw/mainline/scripts/wx | sudo tee /usr/local/bin/wx >/dev/null || true
+sudo chmod +x /usr/local/bin/wx
+do_add_alias "weather" "wx"
+
+# Set/reset up config file
+WX_CONFIG_FILE="$HOME/.config/weather.cfg"
+rm -f "$WX_CONFIG_FILE"
+touch "$WX_CONFIG_FILE"
+echo "location=$location" > "$WX_CONFIG_FILE"
+echo "units=$units" >> "$WX_CONFIG_FILE"
