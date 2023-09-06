@@ -9,12 +9,7 @@ APP_NAME="Beepy Config"
 TITLE="$APP_NAME Setup"
 
 CONFIG_DIR="$HOME/.config/beepy-config"
-REPOS_DIR="$CONFIG_DIR/repos"
-
-BASHRC_FILE=''
-BEEPY_BASHRC_FILE=".bashrc.beepy"
-BEEPY_BASHRC_FILE_BASE="$BEEPY_BASHRC_FILE.base"
-BEEPY_BASHRC_FILE_DEST="$CONFIG_DIR/$BEEPY_BASHRC_FILE"
+SCRIPTS_DIR="$CONFIG_DIR/scripts"
 
 calc_wt_size() {
   # NOTE: it's tempting to redirect stderr to /dev/null, so suppress error
@@ -33,107 +28,21 @@ calc_wt_size() {
   WT_MENU_HEIGHT=$(($WT_HEIGHT-7))
 }
 
-do_find_existing_alias() {
-  key=$1
+do_get_on_off_option() {
+  boolean=$1
 
-  # Return 1 if found, 0 if not found
-  grep -F "alias $key" $BEEPY_BASHRC_FILE
-
-  return $?
-}
-
-do_find_existing_export() {
-  key=$1
-
-  # Return 1 if found, 0 if not found
-  grep -F "export $key" $BEEPY_BASHRC_FILE
-
-  return $?
-}
-
-do_add_alias() {
-  key=$1
-  value=$2
-
-  do_remove_alias "$key"
-
-  echo "alias $key='$value'" >> $BEEPY_BASHRC_FILE
-}
-
-do_remove_alias() {
-  key=$1
-
-  # Remove alias if found
-  if do_find_existing_alias "$key"; then
-    sed -i "/alias $key/d" $BEEPY_BASHRC_FILE
-  fi
-}
-
-do_add_export() {
-  key=$1
-  value=$2
-
-  do_remove_export "$key"
-
-  echo "export $key='$value'" >> $BEEPY_BASHRC_FILE
-}
-
-do_remove_export() {
-  key=$1
-
-  # Remove export if found
-  if do_find_existing_export "$key"; then
-    sed -i "/export $key/d" $BEEPY_BASHRC_FILE
+  if [ "$boolean" -eq 1 ]; then
+    echo "ON"
+  else
+    echo "OFF"
   fi
 }
 
 do_init() {
-  echo "Initializing $TITLE..."
-
-  # Directories for config files and git repos
-  mkdir -p "$CONFIG_DIR" || true
-  mkdir -p "$REPOS_DIR" || true
-
-  # Check that a .bashrc or .bash_aliases file exists
-  if [ -f "$HOME"/.bash_aliases ]
-  then
-      BASHRC_FILE="$HOME"/.bash_aliases
-  elif [ -f "$HOME"/.bashrc ]
-  then
-      BASHRC_FILE="$HOME"/.bashrc
-  else
-      BASHRC_FILE=''
-  fi
-
-  # if .bashrc or .bash_aliases does not exist, exit
-  if [[ ! $BASHRC_FILE ]]
-  then
-      echo "Cannot find .bashrc or .bash_aliases in $HOME directory. Please create one and run this script again."
-      exit 1
-  fi
-
-  # Copy base dotfile for modification
-  cp "$BEEPY_BASHRC_FILE_BASE" "$BEEPY_BASHRC_FILE"
-}
-
-do_final_install() {
-  # Copy dotfile to home directory
-  cp "$BEEPY_BASHRC_FILE" "$BEEPY_BASHRC_FILE_DEST"
-
-  # Add dotfile to .bashrc
-  INCLUDE_BASHRC_SOURCE="[[ -s \"$BEEPY_BASHRC_FILE_DEST\" ]] && source $BEEPY_BASHRC_FILE_DEST"
-  ALREADY_EXISTS=$(tail -n 1 "$BASHRC_FILE")
-  if [ "$ALREADY_EXISTS" == "$INCLUDE_BASHRC_SOURCE" ]
-  then
-      echo ""
-  else
-      echo "$INCLUDE_BASHRC_SOURCE" >> "$BASHRC_FILE"
-  fi
+  do_setup_bashrc_beepy "$CONFIG_DIR" || whiptail --msgbox "No .bashrc or .bash_aliases file found.\\n\\nPlease create one and run this script again." 20 60 2
 }
 
 do_finish() {
-  do_final_install
-
   if [ $ASK_TO_REBOOT -eq 1 ]; then
     whiptail --yesno "Would you like to reboot now?" 20 60 2
     if [ $? -eq 0 ]; then # yes
@@ -146,54 +55,54 @@ do_finish() {
 }
 
 do_hide_terminal_name() {
-  do_add_export "PS1" "\w \$ "
+  do_bashrc_add_export "PS1" "\w \$ "
 }
 
 do_invert_colors() {
-  echo "echo -e '\033[?5h' > /dev/tty1" >> $BEEPY_BASHRC_FILE
+  do_bashrc_add_line "echo -e '\033[?5l' > /dev/tty1"
 }
 
 do_improve_cat() {
   sudo apt-get install -y bat
 
-  do_add_alias "cat" "batcat"
+  do_bashrc_add_alias "cat" "batcat"
 }
 
 do_enable_zoom() {
-  sh scripts/install_zoom
+  sh "$SCRIPTS_DIR/install_zoom"
 
-  do_add_alias "zi" "zoom in"
-  do_add_alias "zo" "zoom out"
-  do_add_alias "zr" "zoom"
+  do_bashrc_add_alias "zi" "zoom in"
+  do_bashrc_add_alias "zo" "zoom out"
+  do_bashrc_add_alias "zr" "zoom"
 }
 
 do_enable_weather() {
   location=$1
   units=$2
 
-  sh scripts/install_wx "$location" "$units"
+  sh "$SCRIPTS_DIR/install_wx" "$location" "$units"
 
-  do_add_alias "weather" "wx"
+  do_bashrc_add_alias "weather" "wx"
 }
 
 do_enable_ppa() {
-  sh scripts/enable_beepy_ppa
+  sh "$SCRIPTS_DIR/enable_beepy_ppa"
   ASK_TO_REBOOT=1
 }
 
 do_disable_ppa() {
-  sh scripts/disable_beepy_ppa
+  sh "$SCRIPTS_DIR/disable_beepy_ppa"
   ASK_TO_REBOOT=1
 }
 
 do_install_fonts() {
-  sh scripts/install_fonts
+  sh "$SCRIPTS_DIR/install_fonts"
 }
 
 do_persist_font() {
   font=$1
 
-  sh scripts/persist_font "$font"
+  sh "$SCRIPTS_DIR/persist_font" "$font"
 }
 
 do_set_font() {
@@ -201,7 +110,7 @@ do_set_font() {
 
   do_install_fonts
 
-  sh scripts/set_font "$font"
+  sh "$SCRIPTS_DIR/set_font" "$font"
 
   do_persist_font_prompt "$font"
 }
@@ -209,13 +118,13 @@ do_set_font() {
 do_preview_all_fonts() {
   do_install_fonts
 
-  sh scripts/preview_terminus_fonts
+  sh "$SCRIPTS_DIR/preview_terminus_fonts"
 }
 
 do_install_reddit() {
   sudo apt-get install -y rtv
 
-  do_add_alias "reddit" "rtv"
+  do_bashrc_add_alias "reddit" "rtv"
 }
 
 do_install_browser() {
@@ -224,7 +133,7 @@ do_install_browser() {
 
   sudo apt-get install -y "$package"
 
-  do_add_alias "web" "$browser_command"
+  do_bashrc_add_alias "web" "$browser_command"
 }
 
 do_install_email_client() {
@@ -233,7 +142,7 @@ do_install_email_client() {
 
   sudo apt-get install -y "$package"
 
-  do_add_alias "email" "$email_client_command"
+  do_bashrc_add_alias "email" "$email_client_command"
 }
 
 do_browser_menu() {
@@ -323,7 +232,7 @@ do_password_manager_menu() {
 
   EMAIL_ADDRESS=$(whiptail --title "$TITLE" --inputbox "What is your email address?" 15 60 3>&1 1>&2 2>&3)
 
-  sh scripts/init_password_store "$NAME" "$EMAIL_ADDRESS"
+  sh "$SCRIPTS_DIR/init_password_store" "$NAME" "$EMAIL_ADDRESS"
 }
 
 do_apps_menu() {
@@ -485,33 +394,31 @@ do_fonts_main_menu() {
 
 
 do_display_extras_menu() {
-  OPTIONS=$(whiptail --separate-output --title "$TITLE" --checklist \
-    "Which display extras would you like to enable?" 15 60 4 \
-    "1" "Hide computer name to save space" OFF \
-    "2" "Enable zoom" OFF \
-    "3" "Invert colors" OFF \
+  CHOICE=$(whiptail --title "$TITLE" --menu \
+    "What would you like to configure?" 15 60 4 \
+    "1" "Hide computer name to save space" \
+    "2" "Enable zoom" \
+    "3" "Invert colors" \
     3>&1 1>&2 2>&3)
 
-  if [ -z "$OPTIONS" ]; then
-    do_display_menu
+  if [ $? -eq 0 ]; then
+          case $CHOICE in
+              1)
+                  do_hide_terminal_name
+                  ;;
+              2)
+                  do_enable_zoom
+                  ;;
+              3)
+                  do_invert_colors
+                  ;;
+              *)
+                  # This should never happen
+                  whiptail --msgbox "Programmer error: unrecognized option" 20 60 1
+                  ;;
+          esac || whiptail --msgbox "There was an error running option $CHOICE" 20 60 1
   else
-    for option in $OPTIONS; do
-      case "$option" in
-        1)
-          do_hide_terminal_name
-          ;;
-        2)
-          do_enable_zoom
-          ;;
-        3)
-          do_invert_colors
-          ;;
-        *)
-          # This should never happen
-          whiptail --msgbox "Programmer error: unrecognized option" 20 60 1
-          ;;
-      esac || whiptail --msgbox "There was an error running option $option" 20 60 1
-    done
+    do_display_menu
   fi
 }
 
@@ -563,10 +470,43 @@ do_beepy_ppa_menu() {
   fi
 }
 
+do_customize_tmux_menu() {
+  CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
+        "1" "Display battery and WiFi strength" \
+        "2" "Display date" \
+        "3" "Move status bar to bottom" \
+        "4" "Move status bar to top" \
+        3>&1 1>&2 2>&3)
+
+    if [ $? -eq 0 ]; then
+        case $CHOICE in
+            1)
+                do_tmux_add_levels_to_status_bar
+                ;;
+            2)
+                do_tmux_add_date_to_status_bar
+                ;;
+            3)
+                do_tmux_move_status_bar "bottom"
+                ;;
+            4)
+                do_tmux_move_status_bar "top"
+                ;;
+            *)
+                # This should never happen
+                whiptail --msgbox "Programmer error: unrecognized option" 20 60 1
+                ;;
+        esac || whiptail --msgbox "There was an error running option $CHOICE" 20 60 1
+    else
+        do_extras_menu
+    fi
+}
+
 do_extras_menu() {
   CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
       "1" "Enable/Disable Beepy PPA" \
       "2" "Improve cat" \
+      "3" "Customize tmux" \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
@@ -576,6 +516,9 @@ do_extras_menu() {
               ;;
           2)
               do_improve_cat
+              ;;
+          3)
+              do_customize_tmux_menu
               ;;
           *)
               # This should never happen
@@ -612,6 +555,9 @@ do_main_menu() {
 # Interactive use loop
 #
 if [ "$INTERACTIVE" = True ]; then
+  source "$SCRIPTS_DIR/edit_bashrc_beepy"
+  source "$SCRIPTS_DIR/edit_tmux_conf"
+
   calc_wt_size
   do_init
   while [ "$USER" = "root" ] || [ -z "$USER" ]; do

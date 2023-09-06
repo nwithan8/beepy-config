@@ -1,0 +1,17 @@
+#!/bin/bash
+
+LEVEL=$(cat /sys/firmware/beepy/battery_percent)
+
+if [[ $LEVEL -lt 10 ]]; then
+    BAR_STR="[  $LEVEL  ]"
+elif [[ $LEVEL -lt 25 ]]; then
+    BAR_STR="[▆ $LEVEL  ]"
+elif [[ $LEVEL -lt -50 ]]; then
+    BAR_STR="[▆▆$LEVEL  ]"
+elif [[ $LEVEL -lt -75 ]]; then
+    BAR_STR="[▆▆$LEVEL▆ ]"
+else
+    BAR_STR="[▆▆$LEVEL▆▆]"
+fi
+
+echo -n "${BAR_STR}"

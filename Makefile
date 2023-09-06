@@ -4,7 +4,7 @@ help:
 
 ## install - Setup Beepy Config
 install:
-	chmod +x ./scripts/* && chmod +x ./beepy-config && ./scripts/install_beepy_config
+	./scripts/install_beepy_config
 
 ## config - Run Beepy Config
 config:

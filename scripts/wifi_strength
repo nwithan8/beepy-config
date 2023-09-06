@@ -1,0 +1,19 @@
+#!/bin/bash
+
+SIGNAL=$(iw dev wlan0 link | grep 'signal:' | awk '{print $2}')
+
+if [[ $SIGNAL -lt -90 ]]; then
+    BAR_STR="[▂___]"
+elif [[ $SIGNAL -lt -67 ]]; then
+    BAR_STR="[▂▄__]"
+elif [[ $SIGNAL -lt -55 ]]; then
+    BAR_STR="[▂▄▆_]"
+elif [[ $SIGNAL -lt -30 ]]; then
+    BAR_STR="[▂▄▆█]"
+elif [[ $SIGNAL -lt -1 ]]; then
+    BAR_STR="[▂▄▆█]"
+else
+    BAR_STR="[ XX ]"
+fi
+
+echo -n "${BAR_STR}"
