@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# Ref: https://ardangelo.github.io/beepy-ppa/#adding-to-apt-and-installing-drivers
-sudo rm -f /etc/apt/sources.list.d/beepy.list
-sudo rm -f /etc/apt/trusted.gpg.d/beepy.gpg
-sudo apt-get update

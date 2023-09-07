@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Ref: https://ardangelo.github.io/beepy-ppa/#adding-to-apt-and-installing-drivers
+
+PPA_LIST="/etc/apt/sources.list.d/beepy.list"
+PPA_GPG="/etc/apt/trusted.gpg.d/beepy.gpg"
+
+do_check_if_beepy_ppa_is_installed() {
+    if [ -f "$PPA_LIST" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+do_enable_beepy_ppa() {
+    curl -s --compressed "https://ardangelo.github.io/beepy-ppa/KEY.gpg" | gpg --dearmor | sudo tee "$PPA_GPG" >/dev/null || true
+    sudo curl -s --compressed -o "$PPA_LIST" "https://ardangelo.github.io/beepy-ppa/beepy.list"
+    sudo apt-get -y install beepy-kbd sharp-drm
+}
+
+do_disable_beepy_ppa() {
+    sudo rm -f "$PPA_LIST"
+    sudo rm -f "$PPA_GPG"
+    sudo apt-get update
+}

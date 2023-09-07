@@ -85,16 +85,6 @@ do_enable_weather() {
   do_bashrc_add_alias "weather" "wx"
 }
 
-do_enable_ppa() {
-  sh "$SCRIPTS_DIR/enable_beepy_ppa"
-  ASK_TO_REBOOT=1
-}
-
-do_disable_ppa() {
-  sh "$SCRIPTS_DIR/disable_beepy_ppa"
-  ASK_TO_REBOOT=1
-}
-
 do_install_fonts() {
   sh "$SCRIPTS_DIR/install_fonts"
 }
@@ -491,7 +481,70 @@ do_display_menu() {
     fi
 }
 
+do_keyboard_remap_beepy_button_menu() {
+  source "$SCRIPTS_DIR/keyboard"
+
+  CHOICE=$(whiptail --title "$TITLE" --radiolist "Which key would you like the Beepy button to simulate?" 15 60 4 \
+      "1" "Ctrl+B" ON \
+      "1" "Esc" OFF \
+      "2" "q" OFF \
+      "3" "Tab" OFF \
+      3>&1 1>&2 2>&3)
+
+  if [ $? -eq 0 ]; then
+      case $CHOICE in
+          1)
+              do_remap_beepy_button "Control_b"
+              ;;
+          2)
+              do_remap_beepy_button "Escape"
+              ;;
+          3)
+              do_remap_beepy_button "q"
+              ;;
+          4)
+              do_remap_beepy_button "Tab"
+              ;;
+          *)
+              # This should never happen
+              whiptail --msgbox "Programmer error: unrecognized option" 20 60 1
+              ;;
+      esac || whiptail --msgbox "There was an error running option $CHOICE" 20 60 1
+  else
+      do_keyboard_menu
+  fi
+}
+
+do_keyboard_menu() {
+  source "$SCRIPTS_DIR/beepy_ppa"
+
+  if ! do_check_if_beepy_ppa_is_installed; then
+    whiptail --msgbox "Please enable the Beepy PPA first." 20 60 1
+    do_beepy_ppa_menu
+  fi
+
+  CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
+      "1" "Remap Beepy button" \
+      3>&1 1>&2 2>&3)
+
+  if [ $? -eq 0 ]; then
+      case $CHOICE in
+          1)
+              do_keyboard_remap_beepy_button_menu
+              ;;
+          *)
+              # This should never happen
+              whiptail --msgbox "Programmer error: unrecognized option" 20 60 1
+              ;;
+      esac || whiptail --msgbox "There was an error running option $CHOICE" 20 60 1
+  else
+      do_main_menu
+  fi
+}
+
 do_beepy_ppa_menu() {
+  source "$SCRIPTS_DIR/beepy_ppa"
+
   CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
       "1" "Enable Beepy PPA" \
       "2" "Disable Beepy PPA" \
@@ -500,10 +553,12 @@ do_beepy_ppa_menu() {
   if [ $? -eq 0 ]; then
       case $CHOICE in
           1)
-              do_enable_ppa
+              do_enable_beepy_ppa
+              ASK_TO_REBOOT=1
               ;;
           2)
-              do_disable_ppa
+              do_disable_beepy_ppa
+              ASK_TO_REBOOT=1
               ;;
           *)
               # This should never happen
@@ -546,6 +601,8 @@ do_tmux_change_status_update_interval_menu() {
 }
 
 do_customize_tmux_menu() {
+  source "$SCRIPTS_DIR/edit_tmux_conf"
+
   CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
         "1" "Display battery and WiFi strength" \
         "2" "Display date" \
@@ -612,6 +669,7 @@ do_extras_menu() {
 do_main_menu() {
   CHOICE=$(whiptail --title "$TITLE" --menu "Setup Options" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
           "Display" "Configure display" \
+          "Keyboard" "Configure keyboard" \
           "Apps" "Configure apps" \
           "Extras" "Configure extras" \
           3>&1 1>&2 2>&3)
@@ -621,6 +679,7 @@ do_main_menu() {
       elif [ $RET -eq 0 ]; then
         case "$CHOICE" in
           "Display") do_display_menu ;;
+          "Keyboard") do_keyboard_menu ;;
           "Apps") do_apps_menu ;;
           "Extras") do_extras_menu ;;
           *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
@@ -635,7 +694,6 @@ do_main_menu() {
 #
 if [ "$INTERACTIVE" = True ]; then
   source "$SCRIPTS_DIR/edit_bashrc_beepy"
-  source "$SCRIPTS_DIR/edit_tmux_conf"
 
   calc_wt_size
   do_init

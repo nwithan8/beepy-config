@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Ref: https://ardangelo.github.io/beepy-ppa/#adding-to-apt-and-installing-drivers
+
+do_remap_beepy_button() {
+    target=$1
+
+    # Find "control keycode 171 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "control keycode 171 = $target"
+    sudo sed -i "s/control keycode 171 = .*$/control keycode 171 = $target/" /usr/share/kbd/keymaps/beepy-kbd.map
+
+    # Reload the keymap
+    sudo loadkeys /usr/share/kbd/keymaps/beepy-kbd.map
+}
