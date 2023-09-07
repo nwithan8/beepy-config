@@ -486,9 +486,9 @@ do_keyboard_remap_beepy_button_menu() {
 
   CHOICE=$(whiptail --title "$TITLE" --radiolist "Which key would you like the Beepy button to simulate?" 15 60 4 \
       "1" "Ctrl+B" ON \
-      "1" "Esc" OFF \
-      "2" "q" OFF \
-      "3" "Tab" OFF \
+      "2" "Esc" OFF \
+      "3" "q" OFF \
+      "4" "Tab" OFF \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
