@@ -1,0 +1,22 @@
+#!/bin/bash
+
+reader=$1
+
+if [ -z "$reader" ]; then
+    echo "Usage: $0 <reader>"
+    exit 1
+fi
+
+case $reader in
+    "newsboat")
+        sudo apt-get install newsboat
+        ;;
+    "nom")
+        sudo apt-get install golang
+        go install github.com/guyfedwards/nom/cmd/nom@latest
+        ;;
+    *)
+        echo "Invalid RSS reader"
+        exit 1
+        ;;
+esac

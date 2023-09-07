@@ -145,8 +145,17 @@ do_install_email_client() {
   do_bashrc_add_alias "email" "$email_client_command"
 }
 
+do_install_rss_reader() {
+  package=$1
+  rss_reader_command=$2
+
+  sh "$SCRIPTS_DIR/install_rss" "$package"
+
+  do_bashrc_add_alias "rss" "$rss_reader_command"
+}
+
 do_browser_menu() {
-  CHOICE=$(whiptail --title "$TITLE" --menu "Which browser would you like to use?" 15 60 4 \
+  CHOICE=$(whiptail --title "$TITLE" --radiolist "Which browser would you like to use?" 15 60 4 \
       "1" "lynx" \
       "2" "w3m" \
       3>&1 1>&2 2>&3)
@@ -171,7 +180,7 @@ do_browser_menu() {
 }
 
 do_email_client_menu() {
-  CHOICE=$(whiptail --title "$TITLE" --menu "Which email client would you like to use?" 15 60 4 \
+  CHOICE=$(whiptail --title "$TITLE" --radiolist "Which email client would you like to use?" 15 60 4 \
       "1" "alpine" \
       "2" "neomutt" \
       "3" "aerc" \
@@ -199,14 +208,50 @@ do_email_client_menu() {
   fi
 }
 
+do_rss_populate_prompt() {
+  reader=$1
+
+  if (whiptail --title "$TITLE" --yesno "Would you like to populate $reader with some common news feeds?" 15 60 4 \
+      3>&1 1>&2 2>&3); then
+    sh "$SCRIPTS_DIR/populate_rss_reader" "$reader"
+  fi
+}
+
+do_rss_reader_menu() {
+  CHOICE=$(whiptail --title "$TITLE" --radiolist "Which RSS reader would you like to use?" 15 60 4 \
+      "1" "newsboat" \
+      "2" "nom" \
+      3>&1 1>&2 2>&3)
+
+  if [ $? -eq 0 ]; then
+      # User made a selection
+      case $CHOICE in
+          1)
+              do_install_rss_reader "newsboat" "newsboat"
+              do_rss_populate_prompt "newsboat"
+              ;;
+          2)
+              do_install_rss_reader "nom" "nom"
+              do_rss_populate_prompt "nom"
+              ;;
+          *)
+              # This should never happen
+              whiptail --msgbox "Programmer error: unrecognized option" 20 60 1
+              ;;
+      esac || whiptail --msgbox "There was an error running option $CHOICE" 20 60 1
+  else
+      do_apps_menu
+  fi
+}
+
 do_weather_menu() {
   LOCATION=$(whiptail --title "$TITLE" --inputbox "What is your location (nearest city)?" 15 60 3>&1 1>&2 2>&3)
   # Replace spaces with + in location
   LOCATION=${LOCATION// /+}
 
   CHOICE=$(whiptail --title "$TITLE" --radiolist "Which units would you like to use?" 15 60 4 \
-            "1" "imperial" \
-            "2" "metric" \
+            "1" "imperial" ON \
+            "2" "metric" OFF \
             3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
@@ -239,9 +284,10 @@ do_apps_menu() {
   CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
       "1" "Set browser" \
       "2" "Set email client" \
-      "3" "Set weather" \
-      "4" "Install Reddit" \
-      "5" "Set up password manager" \
+      "3" "Set RSS reader" \
+      "4" "Set weather" \
+      "5" "Install Reddit" \
+      "6" "Set up password manager" \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
@@ -253,12 +299,15 @@ do_apps_menu() {
               do_email_client_menu
               ;;
           3)
-              do_weather_menu
+              do_rss_reader_menu
               ;;
           4)
-              do_install_reddit
+              do_weather_menu
               ;;
           5)
+              do_install_reddit
+              ;;
+          6)
               do_password_manager_menu
               ;;
           *)

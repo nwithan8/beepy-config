@@ -1,0 +1,35 @@
+#!/bin/bash
+
+reader=$1
+
+FEEDS=(
+    "http://feeds.bbci.co.uk/news/rss.xml"
+    "http://rss.cnn.com/rss/cnn_latest.rss"
+    "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+    "https://www.npr.org/rss/rss.php?id=1001"
+    "https://www.theguardian.com/world/rss"
+    "https://feeds.a.dj.com/rss/RSSWSJD.xml"
+    "https://www.espn.com/espn/rss/news"
+)
+
+if [ -z "$reader" ]; then
+    echo "Usage: $0 <reader>"
+    exit 1
+fi
+
+case $reader in
+    "newsboat")
+        for feed in "${FEEDS[@]}"; do
+            echo "$feed" >> "$HOME"/.newsboat/urls
+        done
+        ;;
+    "nom")
+        for feed in "${FEEDS[@]}"; do
+            nom add "$feed"
+        done
+        ;;
+    *)
+        echo "Invalid RSS reader"
+        exit 1
+        ;;
+esac
