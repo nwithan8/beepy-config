@@ -9,12 +9,15 @@ fi
 
 case $reader in
     "newsboat")
-        sudo apt-get install newsboat
+        sudo apt-get install -y newsboat
         ;;
-    "nom")
-        sudo apt-get install golang
-        go install github.com/guyfedwards/nom/cmd/nom@latest
-        ;;
+    # "nom")
+    #    # TODO: Won't work on ARM despite downloading the ARM binary
+    #    curl -sL $(curl -s https://api.github.com/repos/guyfedwards/nom/releases/latest | grep browser_download_url | cut -d\" -f4 | egrep 'Linux_x86_64.tar.gz$') -o /tmp/nom.tar.gz && \
+    #    tar -xzf /tmp/nom.tar.gz -C /tmp && \
+    #    sudo mv /tmp/nom /usr/local/bin/nom && \
+    #    rm /tmp/nom.tar.gz
+    #    ;;
     *)
         echo "Invalid RSS reader"
         exit 1

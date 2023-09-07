@@ -2,14 +2,13 @@
 
 reader=$1
 
-FEEDS=(
-    "http://feeds.bbci.co.uk/news/rss.xml"
-    "http://rss.cnn.com/rss/cnn_latest.rss"
-    "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
-    "https://www.npr.org/rss/rss.php?id=1001"
-    "https://www.theguardian.com/world/rss"
-    "https://feeds.a.dj.com/rss/RSSWSJD.xml"
-    "https://www.espn.com/espn/rss/news"
+declare -a FEEDS=("http://feeds.bbci.co.uk/news/rss.xml"
+"http://rss.cnn.com/rss/cnn_latest.rss"
+"https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+"https://www.npr.org/rss/rss.php?id=1001"
+"https://www.theguardian.com/world/rss"
+"https://feeds.a.dj.com/rss/RSSWSJD.xml"
+"https://www.espn.com/espn/rss/news"
 )
 
 if [ -z "$reader" ]; then
@@ -19,6 +18,8 @@ fi
 
 case $reader in
     "newsboat")
+        mkdir -p "$HOME"/.newsboat || true
+        touch "$HOME"/.newsboat/urls || true
         for feed in "${FEEDS[@]}"; do
             echo "$feed" >> "$HOME"/.newsboat/urls
         done

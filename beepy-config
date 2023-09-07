@@ -214,14 +214,13 @@ do_rss_populate_prompt() {
 
   if (whiptail --title "$TITLE" --yesno "Would you like to populate $reader with some common news feeds?" 15 60 4 \
       3>&1 1>&2 2>&3); then
-    sh "$SCRIPTS_DIR/populate_rss_reader" "$reader"
+    bash "$SCRIPTS_DIR/populate_rss_reader" "$reader" # This NEEDs to run as bash, not sh
   fi
 }
 
 do_rss_reader_menu() {
   CHOICE=$(whiptail --title "$TITLE" --radiolist "Which RSS reader would you like to use?" 15 60 4 \
       "1" "newsboat" ON \
-      "2" "nom" OFF \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
@@ -230,10 +229,6 @@ do_rss_reader_menu() {
           1)
               do_install_rss_reader "newsboat" "newsboat"
               do_rss_populate_prompt "newsboat"
-              ;;
-          2)
-              do_install_rss_reader "nom" "nom"
-              do_rss_populate_prompt "nom"
               ;;
           *)
               # This should never happen
