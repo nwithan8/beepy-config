@@ -64,6 +64,10 @@ do_improve_cat() {
   do_bashrc_add_alias "cat" "batcat"
 }
 
+do_enable_battery_saver() {
+  sh "$SCRIPTS_DIR/enable_battery_savings"
+}
+
 do_enable_zoom() {
   sh "$SCRIPTS_DIR/install_zoom"
 
@@ -578,6 +582,7 @@ do_extras_menu() {
       "1" "Enable/Disable Beepy PPA" \
       "2" "Improve cat" \
       "3" "Customize tmux" \
+      "4" "Save battery" \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
@@ -590,6 +595,9 @@ do_extras_menu() {
               ;;
           3)
               do_customize_tmux_menu
+              ;;
+          4)
+              do_enable_battery_saver
               ;;
           *)
               # This should never happen
