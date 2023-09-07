@@ -156,8 +156,8 @@ do_install_rss_reader() {
 
 do_browser_menu() {
   CHOICE=$(whiptail --title "$TITLE" --radiolist "Which browser would you like to use?" 15 60 4 \
-      "1" "lynx" \
-      "2" "w3m" \
+      "1" "lynx" ON \
+      "2" "w3m" OFF \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
@@ -181,19 +181,20 @@ do_browser_menu() {
 
 do_email_client_menu() {
   CHOICE=$(whiptail --title "$TITLE" --radiolist "Which email client would you like to use?" 15 60 4 \
-      "1" "alpine" \
-      "2" "neomutt" \
-      "3" "aerc" \
+      "1" "neomutt" ON \
+      "2" "alpine" OFF \
+      "3" "aerc" OFF \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
       # User made a selection
       case $CHOICE in
           1)
-              do_install_email_client "alpine" "alpine"
+              do_install_email_client "neomutt" "neomutt"
               ;;
           2)
-              do_install_email_client "neomutt" "neomutt"
+
+              do_install_email_client "alpine" "alpine"
               ;;
           3)
               do_install_email_client "aerc" "aerc"
@@ -219,8 +220,8 @@ do_rss_populate_prompt() {
 
 do_rss_reader_menu() {
   CHOICE=$(whiptail --title "$TITLE" --radiolist "Which RSS reader would you like to use?" 15 60 4 \
-      "1" "newsboat" \
-      "2" "nom" \
+      "1" "newsboat" ON \
+      "2" "nom" OFF \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
