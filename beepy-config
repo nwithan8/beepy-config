@@ -58,10 +58,6 @@ do_hide_terminal_name() {
   do_bashrc_add_export "PS1" "\w \$ "
 }
 
-do_invert_colors() {
-  do_bashrc_add_line "echo -e '\033[?5l' > /dev/tty1"
-}
-
 do_improve_cat() {
   sudo apt-get install -y bat
 
@@ -455,7 +451,7 @@ do_display_extras_menu() {
                   do_enable_zoom
                   ;;
               3)
-                  do_invert_colors
+                  do_bashrc_invert_colors
                   ;;
               *)
                   # This should never happen

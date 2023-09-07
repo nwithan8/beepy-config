@@ -122,3 +122,9 @@ do_bashrc_remove_line_by_regex_pattern() {
     sed -i "/$pattern/d" "$BEEPY_BASHRC_FILE"
   fi
 }
+
+do_bashrc_invert_colors() {
+  do_bashrc_remove_line_by_regex_pattern " > \/dev\/tty1$"
+
+  echo "echo -e '\033[?5l' > /dev/tty1" >> "$BEEPY_BASHRC_FILE"
+}
