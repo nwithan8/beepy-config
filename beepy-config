@@ -485,10 +485,18 @@ do_keyboard_remap_beepy_button_menu() {
   source "$SCRIPTS_DIR/keyboard"
 
   CHOICE=$(whiptail --title "$TITLE" --radiolist "Which key would you like the Beepy button to simulate?" 15 60 4 \
-      "1" "Ctrl+B" ON \
+      "1" "tmux command" ON \
       "2" "Esc" OFF \
       "3" "q" OFF \
       "4" "Tab" OFF \
+      "5" "Vim command" OFF \
+      "6" "Cut" OFF \
+      "7" "Copy" OFF \
+      "8" "Paste" OFF \
+      "9" "Where am I?" OFF \
+      "10" "List files" OFF \
+      "11" "Log out" OFF \
+      "12" "Exit" OFF \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
@@ -504,6 +512,30 @@ do_keyboard_remap_beepy_button_menu() {
               ;;
           4)
               do_remap_beepy_button "Tab"
+              ;;
+          5)
+              do_remap_beepy_button "Meta_colon"
+              ;;
+          6)
+              do_remap_beepy_button "F31"
+              ;;
+          7)
+              do_remap_beepy_button "F30"
+              ;;
+          8)
+              do_remap_beepy_button "F32"
+              ;;
+          9)
+              do_remap_beepy_button "F44"
+              ;;
+          10)
+              do_remap_beepy_button "F46"
+              ;;
+          11)
+              do_remap_beepy_button "Incr_Console"
+              ;;
+          12)
+              do_remap_beepy_button "F45"
               ;;
           *)
               # This should never happen
@@ -539,34 +571,6 @@ do_keyboard_menu() {
       esac || whiptail --msgbox "There was an error running option $CHOICE" 20 60 1
   else
       do_main_menu
-  fi
-}
-
-do_beepy_ppa_menu() {
-  source "$SCRIPTS_DIR/beepy_ppa"
-
-  CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
-      "1" "Enable Beepy PPA" \
-      "2" "Disable Beepy PPA" \
-      3>&1 1>&2 2>&3)
-
-  if [ $? -eq 0 ]; then
-      case $CHOICE in
-          1)
-              do_enable_beepy_ppa
-              ASK_TO_REBOOT=1
-              ;;
-          2)
-              do_disable_beepy_ppa
-              ASK_TO_REBOOT=1
-              ;;
-          *)
-              # This should never happen
-              whiptail --msgbox "Programmer error: unrecognized option" 20 60 1
-              ;;
-      esac || whiptail --msgbox "There was an error running option $CHOICE" 20 60 1
-  else
-      do_extras_menu
   fi
 }
 
@@ -636,24 +640,20 @@ do_customize_tmux_menu() {
 
 do_extras_menu() {
   CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
-      "1" "Enable/Disable Beepy PPA" \
-      "2" "Improve cat" \
-      "3" "Customize tmux" \
-      "4" "Save battery" \
+      "1" "Improve cat" \
+      "2" "Customize tmux" \
+      "3" "Save battery" \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
       case $CHOICE in
           1)
-              do_beepy_ppa_menu
-              ;;
-          2)
               do_improve_cat
               ;;
-          3)
+          2)
               do_customize_tmux_menu
               ;;
-          4)
+          3)
               do_enable_battery_saver
               ;;
           *)
