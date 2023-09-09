@@ -31,4 +31,4 @@ chmod +x scripts/*
 cp -r scripts/* "$SCRIPTS_DIR"
 
 # Copy the keymap to the keymap directory
-cp keymaps/beepy-kbd.map "$KEYMAP_DIR"
+sudo cp configs/beepy-kbd.map "$KEYMAP_DIR"
