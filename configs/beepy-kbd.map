@@ -85,9 +85,6 @@ keycode 168 = comma
 keycode 169 = period
 
 # Custom shortcuts
-string F30 = Control_c # Copy
-string F31 = Control_x # Cut
-string F32 = Control_v # Paste
 string F40 = "sudo systemctl hibernate\n" # Hibernate
 string F41 = "sudo systemctl suspend\n" # Suspend
 string F42 = "sudo systemctl reboot\n" # Reboot

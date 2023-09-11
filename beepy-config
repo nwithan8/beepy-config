@@ -517,13 +517,13 @@ do_keyboard_remap_beepy_button_menu() {
               do_remap_beepy_button "Meta_colon"
               ;;
           6)
-              do_remap_beepy_button "F31"
+              do_remap_beepy_button "Control_x"
               ;;
           7)
-              do_remap_beepy_button "F30"
+              do_remap_beepy_button "Control_c"
               ;;
           8)
-              do_remap_beepy_button "F32"
+              do_remap_beepy_button "Control_v"
               ;;
           9)
               do_remap_beepy_button "F44"

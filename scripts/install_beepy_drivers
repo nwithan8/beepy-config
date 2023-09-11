@@ -12,10 +12,10 @@ sudo rm /boot/overlays/sharp.dtbo || true
 sudo depmod -a
 
 # Remove any existing beepy drivers from /etc/modules and /boot/config.txt
-sudo sed -i 's/^\(dtoverlay=bbqX0kbd\)/#\1/' /boot/config.txt || true
-sudo sed -i 's/^\(dtoverlay=sharp\)/#\1/' /boot/config.txt || true
-sudo sed -i 's/bbqX0kbd/#bbqX0kbd/' /etc/modules || true
-sudo sed -i 's/sharp/#sharp/' /etc/modules || true
+sudo sed -i 's/^dtoverlay=bbqX0kbd,irq_pin=4$/#dtoverlay=bbqX0kbd,irq_pin=4/' /boot/config.txt || true
+sudo sed -i 's/^dtoverlay=sharp$/#dtoverlay=sharp/' /boot/config.txt || true
+sudo sed -i 's/^bbqX0kbd$/#bbqX0kbd/' /etc/modules || true
+sudo sed -i 's/^sharp$/#sharp/' /etc/modules || true
 
 # Install the beepy drivers
 sudo apt-get -y install beepy-kbd sharp-drm
