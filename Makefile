@@ -6,6 +6,10 @@ help:
 install:
 	chmod +x ./scripts/install_beepy_config && ./scripts/install_beepy_config
 
+## drivers - Install Beepy Drivers
+drivers:
+	chmod +x ./scripts/install_beepy_drivers && ./scripts/install_beepy_drivers
+
 ## config - Run Beepy Config
 config:
 	./beepy-config

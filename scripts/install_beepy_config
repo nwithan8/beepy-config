@@ -17,8 +17,6 @@ sudo apt-get -y install beepy-kbd sharp-drm
 # Update package lists
 sudo apt update
 
-# Install necessary packages
-
 # Directories for config files and git repos
 mkdir -p "$CONFIG_DIR" || true
 mkdir -p "$REPOS_DIR" || true
@@ -31,4 +29,7 @@ chmod +x scripts/*
 cp -r scripts/* "$SCRIPTS_DIR"
 
 # Copy the keymap to the keymap directory
-sudo cp configs/beepy-kbd.map "$KEYMAP_DIR"
+cp configs/beepy-kbd.map "$KEYMAP_DIR"
+
+# Sync files
+sync
