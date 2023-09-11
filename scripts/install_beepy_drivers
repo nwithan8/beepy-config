@@ -9,7 +9,7 @@ sudo rm /lib/modules/*/extra/bbqX0kbd.ko* || true
 sudo rm /lib/modules/*/extra/sharp-drm.ko* || true
 sudo rm /boot/overlays/i2c-bbqX0kbd.dtbo || true
 sudo rm /boot/overlays/sharp.dtbo || true
-depmod -a
+sudo depmod -a
 
 # Remove any existing beepy drivers from /etc/modules and /boot/config.txt
 sudo sed -i 's/^\(dtoverlay=bbqX0kbd\)/#\1/' /boot/config.txt || true
