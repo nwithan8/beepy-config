@@ -2,12 +2,45 @@
 
 # Ref: https://ardangelo.github.io/beepy-ppa/#adding-to-apt-and-installing-drivers
 
+do_reload_keys() {
+    sudo loadkeys /usr/share/kbd/keymaps/beepy-kbd.map
+}
+
+do_replace_key() {
+  FIND=$1
+  REPLACE=$2
+
+  # Find FIND regex pattern in /usr/share/kbd/keymaps/beepy-kbd.map and replace with REPLACE
+  sudo sed -i "s/$FIND/$REPLACE/" /usr/share/kbd/keymaps/beepy-kbd.map
+
+  # Reload the keymap
+  do_reload_keys
+}
+
 do_remap_beepy_button() {
     target=$1
 
-    # Find "control keycode 171 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "control keycode 171 = $target"
-    sudo sed -i "s/control keycode 171 = .*$/control keycode 171 = $target/" /usr/share/kbd/keymaps/beepy-kbd.map
+    # Find "keycode 171 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "keycode 171 = $target"
+    do_replace_key "keycode 171 = .*" "keycode 171 = $target"
+}
 
-    # Reload the keymap
-    sudo loadkeys /usr/share/kbd/keymaps/beepy-kbd.map
+do_remap_control_beepy_button() {
+    target=$1
+
+    # Find "control keycode 171 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "control keycode 171 = $target"
+    do_replace_key "control keycode 171 = .*" "control keycode 171 = $target"
+}
+
+do_remap_back_button() {
+    target=$1
+
+    # Find "keycode 1 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "keycode 1 = $target"
+    do_replace_key "keycode 1 = .*" "keycode 1 = $target"
+}
+
+do_remap_control_back_button() {
+    target=$1
+
+    # Find "control keycode 1 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "control keycode 1 = $target"
+    do_replace_key "control keycode 1 = .*" "control keycode 1 = $target"
 }

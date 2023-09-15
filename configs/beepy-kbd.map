@@ -1,5 +1,8 @@
 # Reference
 # https://github.com/SFML/SFML/blob/master/src/SFML/Window/Unix/KeySymToUnicodeMapping.cpp
+# https://github.com/sqfmi/i2c_puppet/blob/3010ada26a19612a54fb7e8258af5c5e1b93fffb/app/keyboard.c#L43
+# https://github.com/wallComputer/bbqX0kbd_driver/blob/main/source/mod_src/bbq20kbd_pmod_codes.h
+# Use "showkey" to find keycodes
 
 # Symbol key
 altgr keycode 16 = asciitilde
@@ -33,9 +36,20 @@ altgr keycode 50 = guillemotright
 
 altgr keycode 113 = dollar
 
-# Berry key sends Control + this code
-# Use it for Tmux prefix
-control keycode 171 = F30
+# Answer key (29 - DO NOT OVERRIDE)
+
+# Berry key
+keycode 171 = Tab
+control keycode 171 = Tab
+altgr keycode 171 = Tab
+
+# Middle button key (28 - DO NOT OVERRIDE)
+
+# Back key
+keycode 1 = Escape
+control keycode 1 = Escape
+
+# Hang up key (None)
 
 # Meta Q / A move between words
 keycode 172 = F172
