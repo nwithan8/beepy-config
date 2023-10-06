@@ -20,5 +20,8 @@ sudo sed -i 's/^sharp$/#sharp/' /etc/modules || true
 # Install the beepy drivers
 sudo apt-get -y install beepy-kbd sharp-drm
 
+# Update package lists
+sudo apt update
+
 # Reboot
 sudo shutdown -r now

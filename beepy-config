@@ -563,11 +563,9 @@ do_email_client_menu() {
 do_rss_populate_prompt() {
   reader=$1
 
-  do_install_script "https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/populate_rss_reader"
-
   if (whiptail --title "$TITLE" --yesno "Would you like to populate $reader with some common news feeds?" 15 60 4 \
       3>&1 1>&2 2>&3); then
-    bash "$SCRIPTS_DIR/populate_rss_reader" "$reader" # This NEEDs to run as bash, not sh
+    curl -s "https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/populate_rss_reader" | bash -s -- "$reader" # This NEEDs to run as bash, not sh
   fi
 }
 
@@ -1071,11 +1069,35 @@ do_main_menu() {
       fi
 }
 
+do_driver_install_prompt() {
+  # Prompt yes/no to install dependencies
+  if (whiptail --title "$TITLE" --yesno "Would you like to install $APP_NAME dependencies? This will cause your device to reboot." 15 60 4 \
+      3>&1 1>&2 2>&3); then
+    whiptail --msgbox "Installing $APP_NAME dependencies. Please enter your superuser password when prompted." 20 60 1
+    curl -s "https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/install_beepy_drivers" | bash
+  fi
+}
+
+do_check_dependencies_are_installed() {
+  # if PPA is not installed or sharp-drm is not installed
+  if ! do_check_if_beepy_ppa_is_installed || ! dpkg -s sharp-drm >/dev/null 2>&1; then
+    whiptail --msgbox "This device is missing required drivers.\\n\\nPlease install them first." 20 60 1
+    do_driver_install_prompt
+  fi
+
+  # If beepy-kbd.map is not installed
+  if [ ! -f /usr/share/kbd/keymaps/beepy-kbd.map ]; then
+    whiptail --msgbox "Beepy-config is missing required dependencies. Installing..." 20 60 1
+    curl -s https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/install_beepy_config | bash
+  fi
+}
+
 #
 # Interactive use loop
 #
 if [ "$INTERACTIVE" = True ]; then
   calc_wt_size
+  do_check_dependencies_are_installed
   do_init
   while [ "$USER" = "root" ] || [ -z "$USER" ]; do
     if ! USER=$(whiptail --inputbox "$APP_NAME could not determine the default user.\\n\\nWhat user should these settings apply to?" 20 60 pi 3>&1 1>&2 2>&3); then
