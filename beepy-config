@@ -117,15 +117,6 @@ do_bashrc_find_existing_export() {
   return $?
 }
 
-do_bashrc_add_alias() {
-  key=$1
-  value=$2
-
-  do_bashrc_remove_alias "$key"
-
-  echo "alias $key='$value'" >> "$BEEPY_BASHRC_FILE_PATH"
-}
-
 do_bashrc_remove_alias() {
   key=$1
 
@@ -135,13 +126,13 @@ do_bashrc_remove_alias() {
   fi
 }
 
-do_bashrc_add_export() {
+do_bashrc_add_alias() {
   key=$1
   value=$2
 
-  do_bashrc_remove_export "$key"
+  do_bashrc_remove_alias "$key"
 
-  echo "export $key='$value'" >> "$BEEPY_BASHRC_FILE_PATH"
+  echo "alias $key='$value'" >> "$BEEPY_BASHRC_FILE_PATH"
 }
 
 do_bashrc_remove_export() {
@@ -153,12 +144,13 @@ do_bashrc_remove_export() {
   fi
 }
 
-do_bashrc_add_line() {
-  line=$1
+do_bashrc_add_export() {
+  key=$1
+  value=$2
 
-  do_bashrc_remove_line "$line"
+  do_bashrc_remove_export "$key"
 
-  echo "$line" >> "$BEEPY_BASHRC_FILE_PATH"
+  echo "export $key='$value'" >> "$BEEPY_BASHRC_FILE_PATH"
 }
 
 do_bashrc_remove_line() {
@@ -177,6 +169,14 @@ do_bashrc_remove_line_by_regex_pattern() {
   if grep -q "$pattern" "$BEEPY_BASHRC_FILE_PATH"; then
     sed -i "/$pattern/d" "$BEEPY_BASHRC_FILE_PATH"
   fi
+}
+
+do_bashrc_add_line() {
+  line=$1
+
+  do_bashrc_remove_line "$line"
+
+  echo "$line" >> "$BEEPY_BASHRC_FILE_PATH"
 }
 
 do_bashrc_invert_colors() {
@@ -1074,7 +1074,7 @@ do_driver_install_prompt() {
   if (whiptail --title "$TITLE" --yesno "Would you like to install $APP_NAME dependencies? This will cause your device to reboot." 15 60 4 \
       3>&1 1>&2 2>&3); then
     whiptail --msgbox "Installing $APP_NAME dependencies. Please enter your superuser password when prompted." 20 60 1
-    curl -s "https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/install_beepy_drivers" | bash
+    curl -s "https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/install_beepy_drivers" | sudo bash
   fi
 }
 
@@ -1088,7 +1088,7 @@ do_check_dependencies_are_installed() {
   # If beepy-kbd.map is not installed
   if [ ! -f /usr/share/kbd/keymaps/beepy-kbd.map ]; then
     whiptail --msgbox "Beepy-config is missing required dependencies. Installing..." 20 60 1
-    curl -s https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/install_beepy_config | bash
+    curl -s https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/install_beepy_config | sudo bash
   fi
 }
 
@@ -1099,8 +1099,14 @@ if [ "$INTERACTIVE" = True ]; then
   calc_wt_size
   do_check_dependencies_are_installed
   do_init
+  TIMES_PROMPTED_FOR_USER=0
   while [ "$USER" = "root" ] || [ -z "$USER" ]; do
+    # Exit this loop after one iteration if user keeps cancelling user creation
     if ! USER=$(whiptail --inputbox "$APP_NAME could not determine the default user.\\n\\nWhat user should these settings apply to?" 20 60 pi 3>&1 1>&2 2>&3); then
+      TIMES_PROMPTED_FOR_USER=$((TIMES_PROMPTED_FOR_USER+1))
+      if [ $TIMES_PROMPTED_FOR_USER -eq 1 ]; then
+        exit 0
+      fi
       return 0
     fi
   done
