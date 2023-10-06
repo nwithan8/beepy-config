@@ -11,6 +11,305 @@ TITLE="$APP_NAME Setup"
 CONFIG_DIR="$HOME/.config/beepy-config"
 SCRIPTS_DIR="$CONFIG_DIR/scripts"
 
+
+############# App Functions ##############
+
+##### Installing Scripts
+do_install_script() {
+  script_download_url=$1
+  script_name=$(basename "$script_download_url")
+
+  # Download script to SCRIPTS_DIR, overwriting if it already exists
+  curl -o "$SCRIPTS_DIR/$script_name" "$script_download_url"
+
+  # Make script executable
+  chmod +x "$SCRIPTS_DIR/$script_name"
+}
+
+##### Beepy PPA
+# Ref: https://ardangelo.github.io/beepy-ppa/#adding-to-apt-and-installing-drivers
+
+PPA_LIST="/etc/apt/sources.list.d/beepy.list"
+PPA_GPG="/etc/apt/trusted.gpg.d/beepy.gpg"
+
+do_check_if_beepy_ppa_is_installed() {
+    if [ -f "$PPA_LIST" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+do_enable_beepy_ppa() {
+    curl -s --compressed "https://ardangelo.github.io/beepy-ppa/KEY.gpg" | gpg --dearmor | sudo tee "$PPA_GPG" >/dev/null || true
+    sudo curl -s --compressed -o "$PPA_LIST" "https://ardangelo.github.io/beepy-ppa/beepy.list"
+    sudo apt-get -y install beepy-kbd sharp-drm
+}
+
+do_disable_beepy_ppa() {
+    sudo rm -f "$PPA_LIST"
+    sudo rm -f "$PPA_GPG"
+    sudo apt-get update
+}
+
+
+##### Beepy Bashrc
+BEEPY_BASHRC_FILE_NAME=".bashrc.beepy"
+BEEPY_BASHRC_FILE_PATH=""
+
+do_confirm_bashrc_exists() {
+  # Check that a .bashrc or .bash_aliases file exists
+  if [ -f "$HOME"/.bash_aliases ]
+  then
+      BASHRC_FILE="$HOME"/.bash_aliases
+  elif [ -f "$HOME"/.bashrc ]
+  then
+      BASHRC_FILE="$HOME"/.bashrc
+  else
+      BASHRC_FILE=''
+  fi
+
+  # if .bashrc or .bash_aliases does not exist, exit
+  if [[ ! $BASHRC_FILE ]]
+  then
+      exit 1
+  fi
+}
+
+do_setup_bashrc_beepy() {
+  do_confirm_bashrc_exists || exit 1
+
+  dest_path=$1
+
+  BEEPY_BASHRC_FILE_PATH="$dest_path/$BEEPY_BASHRC_FILE_NAME"
+
+  # Create .bashrc.beepy file if it doesn't exist
+  if [ ! -f "$BEEPY_BASHRC_FILE_PATH" ]; then
+      touch "$BEEPY_BASHRC_FILE_PATH"
+  fi
+
+  # Add dotfile to .bashrc
+  INCLUDE_BASHRC_SOURCE="[[ -s \"$BEEPY_BASHRC_FILE_PATH\" ]] && source $BEEPY_BASHRC_FILE_PATH"
+  ALREADY_EXISTS=$(tail -n 1 "$BASHRC_FILE")
+  if [ "$ALREADY_EXISTS" == "$INCLUDE_BASHRC_SOURCE" ]
+  then
+      echo ""
+  else
+      echo "$INCLUDE_BASHRC_SOURCE" >> "$BASHRC_FILE"
+  fi
+}
+
+do_bashrc_find_existing_alias() {
+  key=$1
+
+  # Return 1 if found, 0 if not found
+  grep -F "alias $key" "$BEEPY_BASHRC_FILE_PATH"
+
+  return $?
+}
+
+do_bashrc_find_existing_export() {
+  key=$1
+
+  # Return 1 if found, 0 if not found
+  grep -F "export $key" "$BEEPY_BASHRC_FILE_PATH"
+
+  return $?
+}
+
+do_bashrc_add_alias() {
+  key=$1
+  value=$2
+
+  do_bashrc_remove_alias "$key"
+
+  echo "alias $key='$value'" >> "$BEEPY_BASHRC_FILE_PATH"
+}
+
+do_bashrc_remove_alias() {
+  key=$1
+
+  # Remove alias if found
+  if do_bashrc_find_existing_alias "$key"; then
+    sed -i "/alias $key/d" "$BEEPY_BASHRC_FILE_PATH"
+  fi
+}
+
+do_bashrc_add_export() {
+  key=$1
+  value=$2
+
+  do_bashrc_remove_export "$key"
+
+  echo "export $key='$value'" >> "$BEEPY_BASHRC_FILE_PATH"
+}
+
+do_bashrc_remove_export() {
+  key=$1
+
+  # Remove export if found
+  if do_bashrc_find_existing_export "$key"; then
+    sed -i "/export $key/d" "$BEEPY_BASHRC_FILE_PATH"
+  fi
+}
+
+do_bashrc_add_line() {
+  line=$1
+
+  do_bashrc_remove_line "$line"
+
+  echo "$line" >> "$BEEPY_BASHRC_FILE_PATH"
+}
+
+do_bashrc_remove_line() {
+  line=$1
+
+  # Remove line if found
+  if grep -q "$line" "$BEEPY_BASHRC_FILE_PATH"; then
+    sed -i "/$line/d" "$BEEPY_BASHRC_FILE_PATH"
+  fi
+}
+
+do_bashrc_remove_line_by_regex_pattern() {
+  pattern=$1
+
+  # Remove line if found
+  if grep -q "$pattern" "$BEEPY_BASHRC_FILE_PATH"; then
+    sed -i "/$pattern/d" "$BEEPY_BASHRC_FILE_PATH"
+  fi
+}
+
+do_bashrc_invert_colors() {
+  do_bashrc_remove_line_by_regex_pattern " > \/dev\/tty1$"
+
+  echo "echo -e '\033[?5l' > /dev/tty1" >> "$BEEPY_BASHRC_FILE_PATH"
+}
+
+
+##### Tmux Config
+TMUX_CONFIG_FILE="$HOME/.tmux.conf"
+
+do_ensure_tmux_conf_exists() {
+    if [ ! -f "$TMUX_CONFIG_FILE" ]; then
+        touch "$TMUX_CONFIG_FILE"
+    fi
+}
+
+do_tmux_add_line() {
+  line=$1
+
+  do_tmux_remove_line "$line"
+
+  echo "$line" >> "$TMUX_CONFIG_FILE"
+}
+
+do_tmux_remove_line() {
+  line=$1
+
+  # Remove line if found
+  if grep -q "$line" "$TMUX_CONFIG_FILE"; then
+    sed -i "/$line/d" "$TMUX_CONFIG_FILE"
+  fi
+}
+
+do_tmux_remove_line_by_regex_pattern() {
+  pattern=$1
+
+  # Remove line if found
+  if grep -q "$pattern" "$TMUX_CONFIG_FILE"; then
+    sed -i "/$pattern/d" "$TMUX_CONFIG_FILE"
+  fi
+}
+
+do_tmux_add_levels_to_status_bar() {
+  do_ensure_tmux_conf_exists
+
+  do_install_script "https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/battery_level"
+  do_install_script "https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/wifi_strength"
+
+  do_tmux_remove_line_by_regex_pattern "set -g status-right .*$"
+
+  do_tmux_add_line "set -g status-right '#(sh $SCRIPTS_DIR/wifi_strength) #(sh $SCRIPTS_DIR/battery_level)'"
+}
+
+do_tmux_add_date_to_status_bar() {
+  do_ensure_tmux_conf_exists
+
+  do_tmux_remove_line_by_regex_pattern "set -g status-left .*$"
+
+  do_tmux_add_line "set -g status-left \"#(date +'%I:%M%p') \""
+}
+
+do_tmux_move_status_bar() {
+  do_ensure_tmux_conf_exists
+
+  position=$1
+
+  do_tmux_remove_line_by_regex_pattern "set -g status-position .*$"
+
+  do_tmux_add_line "set -g status-position $position"
+}
+
+do_tmux_set_update_interval() {
+  do_ensure_tmux_conf_exists
+
+  interval=$1
+
+  do_tmux_remove_line_by_regex_pattern "set -g status-interval .*$"
+
+  do_tmux_add_line "set -g status-interval $interval"
+}
+
+
+##### Keyboard
+# Ref: https://ardangelo.github.io/beepy-ppa/#adding-to-apt-and-installing-drivers
+
+do_reload_keys() {
+    sudo loadkeys /usr/share/kbd/keymaps/beepy-kbd.map
+}
+
+do_replace_key() {
+  FIND=$1
+  REPLACE=$2
+
+  # Find FIND regex pattern in /usr/share/kbd/keymaps/beepy-kbd.map and replace with REPLACE
+  sudo sed -i "s/$FIND/$REPLACE/" /usr/share/kbd/keymaps/beepy-kbd.map
+
+  # Reload the keymap
+  do_reload_keys
+}
+
+do_remap_beepy_button() {
+    target=$1
+
+    # Find "keycode 171 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "keycode 171 = $target"
+    do_replace_key "keycode 171 = .*" "keycode 171 = $target"
+}
+
+do_remap_control_beepy_button() {
+    target=$1
+
+    # Find "control keycode 171 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "control keycode 171 = $target"
+    do_replace_key "control keycode 171 = .*" "control keycode 171 = $target"
+}
+
+do_remap_back_button() {
+    target=$1
+
+    # Find "keycode 1 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "keycode 1 = $target"
+    do_replace_key "keycode 1 = .*" "keycode 1 = $target"
+}
+
+do_remap_control_back_button() {
+    target=$1
+
+    # Find "control keycode 1 = .*$" in /usr/share/kbd/keymaps/beepy-kbd.map and replace with "control keycode 1 = $target"
+    do_replace_key "control keycode 1 = .*" "control keycode 1 = $target"
+}
+
+
+########### Main Functions ################
+
 calc_wt_size() {
   # NOTE: it's tempting to redirect stderr to /dev/null, so suppress error
   # output from tput. However in this case, tput detects neither stdout or
@@ -65,11 +364,21 @@ do_improve_cat() {
 }
 
 do_enable_battery_saver() {
-  sh "$SCRIPTS_DIR/enable_battery_savings"
+  # Disable HDMI
+  # sudo /usr/bin/tvservice -o
+  # echo "/usr/bin/tvservice -o" >> /etc/rc.local
+
+  # Disable ACT led
+  echo 0 | sudo tee /sys/class/leds/ACT/brightness
+  echo none | sudo tee /sys/class/leds/ACT/trigger
+  echo "echo 0 | sudo tee /sys/class/leds/ACT/brightness" >> /etc/rc.local
+  echo "echo none | sudo tee /sys/class/leds/ACT/trigger" >> /etc/rc.local
 }
 
 do_enable_zoom() {
-  sh "$SCRIPTS_DIR/install_zoom"
+  # Download file to /usr/local/bin/zoom
+  curl -s https://raw.githubusercontent.com/ardangelo/beepy-addons/mainline/zoom.sh | sudo tee /usr/local/bin/zoom >/dev/null || true
+  sudo chmod +x /usr/local/bin/zoom
 
   do_bashrc_add_alias "zi" "zoom in"
   do_bashrc_add_alias "zo" "zoom out"
@@ -80,19 +389,42 @@ do_enable_weather() {
   location=$1
   units=$2
 
-  sh "$SCRIPTS_DIR/install_wx" "$location" "$units"
+  # Download file to /usr/local/bin/wx
+  curl -s https://github.com/k5njm/beepy-hacks/raw/mainline/scripts/wx | sudo tee /usr/local/bin/wx >/dev/null || true
+  sudo chmod +x /usr/local/bin/wx
+  do_add_alias "weather" "wx"
+
+  # Set/reset up config file
+  WX_CONFIG_FILE="$HOME/.config/weather.cfg"
+  rm -f "$WX_CONFIG_FILE"
+  touch "$WX_CONFIG_FILE"
+  echo "location=$location" > "$WX_CONFIG_FILE"
+  echo "units=$units" >> "$WX_CONFIG_FILE"
 
   do_bashrc_add_alias "weather" "wx"
 }
 
 do_install_fonts() {
-  sh "$SCRIPTS_DIR/install_fonts"
+  # Ref: https://github.com/k5njm/beepy-hacks/blob/mainline/fonts.md
+  if ! dpkg -s console-setup >/dev/null 2>&1; then
+    sudo apt-get install console-setup kbd
+  fi
+
+  # Download Terminus fonts if git repo not already cloned
+  if [ ! -d "$REPOS_DIR"/fonts ]; then
+    echo "Downloading Terminus fonts..."
+    git clone https://github.com/powerline/fonts.git "$REPOS_DIR" || true
+  fi
+
+  sudo cp "$REPOS_DIR"/fonts/Terminus/PSF/*.gz /usr/share/consolefonts/
 }
 
 do_persist_font() {
   font=$1
 
-  sh "$SCRIPTS_DIR/persist_font" "$font"
+  # Persist font setting by replacing FONT in /etc/default/console-setup
+  sudo sed -i "s/^FONT=.*/FONT=\"$font\"/" /etc/default/console-setup
+  sudo update-initramfs -u
 }
 
 do_set_font() {
@@ -100,7 +432,7 @@ do_set_font() {
 
   do_install_fonts
 
-  sh "$SCRIPTS_DIR/set_font" "$font"
+  sudo setfont /usr/share/consolefonts/"$font"
 
   do_persist_font_prompt "$font"
 }
@@ -108,7 +440,14 @@ do_set_font() {
 do_preview_all_fonts() {
   do_install_fonts
 
-  sh "$SCRIPTS_DIR/preview_terminus_fonts"
+  for font in /usr/share/consolefonts/ter-powerline-v*;
+    do
+      font_name=$(echo "$font" | sed -e 's/\/usr\/share\/consolefonts\/ter-powerline-v\([0-9]*\)\(n\|b\).psf.gz/\1 \2/')
+      sudo setfont $font;
+      sleep 3;
+      echo "| $font_name | `tput cols`x`tput lines` |";
+      sleep 1;
+    done
 }
 
 do_install_reddit() {
@@ -140,6 +479,28 @@ do_install_rss_reader() {
   rss_reader_command=$2
 
   sh "$SCRIPTS_DIR/install_rss" "$package"
+
+  if [ -z "$package" ]; then
+      echo "Usage: $0 <reader>"
+      exit 1
+  fi
+
+  case $package in
+      "newsboat")
+          sudo apt-get install -y newsboat
+          ;;
+      # "nom")
+      #    # TODO: Won't work on ARM despite downloading the ARM binary
+      #    curl -sL $(curl -s https://api.github.com/repos/guyfedwards/nom/releases/latest | grep browser_download_url | cut -d\" -f4 | egrep 'Linux_x86_64.tar.gz$') -o /tmp/nom.tar.gz && \
+      #    tar -xzf /tmp/nom.tar.gz -C /tmp && \
+      #    sudo mv /tmp/nom /usr/local/bin/nom && \
+      #    rm /tmp/nom.tar.gz
+      #    ;;
+      *)
+          echo "Invalid RSS reader"
+          exit 1
+          ;;
+  esac
 
   do_bashrc_add_alias "rss" "$rss_reader_command"
 }
@@ -202,6 +563,8 @@ do_email_client_menu() {
 do_rss_populate_prompt() {
   reader=$1
 
+  do_install_script "https://raw.githubusercontent.com/nwithan8/beepy-config/master/scripts/populate_rss_reader"
+
   if (whiptail --title "$TITLE" --yesno "Would you like to populate $reader with some common news feeds?" 15 60 4 \
       3>&1 1>&2 2>&3); then
     bash "$SCRIPTS_DIR/populate_rss_reader" "$reader" # This NEEDs to run as bash, not sh
@@ -263,7 +626,32 @@ do_password_manager_menu() {
 
   EMAIL_ADDRESS=$(whiptail --title "$TITLE" --inputbox "What is your email address?" 15 60 3>&1 1>&2 2>&3)
 
-  sh "$SCRIPTS_DIR/init_password_store" "$NAME" "$EMAIL_ADDRESS"
+  # Set up password store if not already set up
+  sudo apt-get install pass git
+  if [ ! -d "$HOME"/.password-store ]
+  then
+        # Generate GPG key
+        gpg --full-gen-key --batch <(echo "Key-Type: 1"; \
+                                         echo "Key-Length: 4096"; \
+                                         echo "Subkey-Type: 1"; \
+                                         echo "Subkey-Length: 4096"; \
+                                         echo "Expire-Date: 0"; \
+                                         echo "Name-Real: $NAME"; \
+                                         echo "Name-Email: $EMAIL_ADDRESS"; \
+                                         echo "%no-protection"; )
+
+        # Get the Key ID of the key we just generated
+        KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep -E "^sec" | tail -n 1 | awk '{print $2}' | awk -F'/' '{print $2}')
+
+        # Initialize password store
+        pass init "$KEY_ID"
+
+        # Set up git config for password store
+        pass git init
+        cd "$HOME"/.password-store/.git || exit
+        git config user.name "$NAME"
+        git config user.email "$EMAIL_ADDRESS"
+  fi
 }
 
 do_apps_menu() {
@@ -482,8 +870,6 @@ do_display_menu() {
 }
 
 do_keyboard_remap_beepy_button_menu() {
-  source "$SCRIPTS_DIR/keyboard"
-
   CHOICE=$(whiptail --title "$TITLE" --radiolist "Which key would you like the Beepy button to simulate?" 15 60 4 \
       "1" "tmux command" ON \
       "2" "Esc" OFF \
@@ -548,8 +934,6 @@ do_keyboard_remap_beepy_button_menu() {
 }
 
 do_keyboard_menu() {
-  source "$SCRIPTS_DIR/beepy_ppa"
-
   if ! do_check_if_beepy_ppa_is_installed; then
     whiptail --msgbox "Please enable the Beepy PPA first." 20 60 1
     do_beepy_ppa_menu
@@ -605,8 +989,6 @@ do_tmux_change_status_update_interval_menu() {
 }
 
 do_customize_tmux_menu() {
-  source "$SCRIPTS_DIR/edit_tmux_conf"
-
   CHOICE=$(whiptail --title "$TITLE" --menu "What would you like to do?" 15 60 4 \
         "1" "Display battery and WiFi strength" \
         "2" "Display date" \
@@ -693,8 +1075,6 @@ do_main_menu() {
 # Interactive use loop
 #
 if [ "$INTERACTIVE" = True ]; then
-  source "$SCRIPTS_DIR/edit_bashrc_beepy"
-
   calc_wt_size
   do_init
   while [ "$USER" = "root" ] || [ -z "$USER" ]; do

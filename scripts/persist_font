@@ -1,8 +1,0 @@
-#!/bin/bash
-
-font=$1
-
-# Persist font setting by replacing FONT in /etc/default/console-setup
-sudo sed -i "s/^FONT=.*/FONT=\"$font\"/" /etc/default/console-setup
-sudo update-initramfs -u
-

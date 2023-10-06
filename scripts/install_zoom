@@ -1,5 +1,0 @@
-#!/bin/bash
-
-# Download file to /usr/local/bin/zoom
-curl -s https://raw.githubusercontent.com/ardangelo/beepy-addons/mainline/zoom.sh | sudo tee /usr/local/bin/zoom >/dev/null || true
-sudo chmod +x /usr/local/bin/zoom

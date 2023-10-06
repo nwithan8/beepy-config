@@ -1,6 +1,0 @@
-#!/bin/bash
-
-font=$1
-
-sudo setfont /usr/share/consolefonts/"$font"
-
